@@ -17,6 +17,7 @@ internal class BankAccount
             return balance;
         }
     }
+
     public string Number { get; }
     private static int s_accountNumberSeed = 1000000000;
     public BankAccount(string name, decimal initialBalance)

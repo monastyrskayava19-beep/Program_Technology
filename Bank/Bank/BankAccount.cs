@@ -1,6 +1,8 @@
-﻿namespace Bank;
+﻿using System.Text;
 
-internal class BankAccount
+namespace Bank;
+
+public class BankAccount
 {
     private List<Transaction> _allTransactions = new List<Transaction>();
     public string Owner { get; private set; }
@@ -12,12 +14,10 @@ internal class BankAccount
             foreach (var transaction in _allTransactions)
             {
                 balance += transaction.Amount;
-
             }
             return balance;
         }
     }
-
     public string Number { get; }
     private static int s_accountNumberSeed = 1000000000;
     public BankAccount(string name, decimal initialBalance)
@@ -47,14 +47,35 @@ internal class BankAccount
                     (nameof(amount), "Amount of withdawal must be positive");
         }
 
-        if (Balance < amount)
+        if (Balance < amount)//не можем снять меньше чем на балансе
         {
             throw new InvalidOperationException
-                ("Not sufficient rubls for this withdrawal");
+                ("Not sufficient rubls for this with drawal");
         }
 
         var withdrawal = new Transaction(-amount, date, note);
         _allTransactions.Add(withdrawal);
+    }
+
+    public string GetAccountHistory()
+    {
+        var report = new StringBuilder();
+
+        decimal balance = 0;
+        report.AppendLine("Data\t\tAmount\tBalance\tNote");
+        foreach(var item in _allTransactions)
+        {
+            balance += item.Amount;
+            report.AppendLine($"" +
+                $"{item.Date.ToShortDateString()}\t" +
+                $"{item.Amount}\t{balance}\t{item.Note}");
+        }
+        return report.ToString();
+    }
+    // Ключевое слово virtual позволяет в дочернем классе придоставить другую реализацию этого метода PerformMonthAndTransactions()
+    public virtual void PerformMonthAndTransactions()
+    {
+
     }
 
 }

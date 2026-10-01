@@ -10,7 +10,8 @@ namespace Bank
         {
 
         }
-        //override (производный класс) позволяет в дочернем классе определить новую реализацию метода PerformMonthAndTransactions
+        //override (производный класс) позволяет в дочернем классе определить новую реализацию
+        //метода PerformMonthAndTransactions
         public override void PerformMonthAndTransactions()
         {
             if (Balance > 500m)

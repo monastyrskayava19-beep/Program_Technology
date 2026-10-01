@@ -12,6 +12,7 @@ internal class BankAccount
             foreach (var transaction in _allTransactions)
             {
                 balance += transaction.Amount;
+
             }
             return balance;
         }

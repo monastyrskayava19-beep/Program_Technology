@@ -13,6 +13,7 @@ public class GameService
     /// <param name="maxNumber">Максимальное число диапазона.</param>
     public void Play(int maxNumber = 100)
     {
+
         int target = _random.Next(1, maxNumber + 1);
         Console.WriteLine($"Я загадал число от 1 до {maxNumber}.");
 

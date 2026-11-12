@@ -1,38 +1,54 @@
-﻿namespace GuessTheNumber.Core.Game;
+﻿using System;
+using GuessTheNumber.Core.Difficulty;
+
+namespace GuessTheNumber.Core.Game;
 
 /// <summary>
-/// Простая логика игры «Угадай число».
+/// Логика игры «Угадай число».
 /// </summary>
 public class GameService
 {
     private readonly Random _random = new();
 
     /// <summary>
-    /// Запускает игру.
+    /// Запускает игру с выбранным уровнем сложности.
     /// </summary>
-    /// <param name="maxNumber">Максимальное число диапазона.</param>
-    public void Play(int maxNumber = 100)
+    public void Play(DifficultyLevel level)
     {
+        int target = _random.Next(1, level.MaxNumber + 1);
+        int attempts = 0;
 
-        int target = _random.Next(1, maxNumber + 1);
-        Console.WriteLine($"Я загадал число от 1 до {maxNumber}.");
+        Console.WriteLine($"Я загадал число от 1 до {level.MaxNumber}. У вас есть {level.MaxAttempts} попыток.");
 
-        while (true)
+        while (attempts < level.MaxAttempts)
         {
-            Console.Write("Введите число: ");
+            attempts++;
+            Console.Write($"Попытка {attempts}/{level.MaxAttempts}. Введите число: ");
+
             if (!int.TryParse(Console.ReadLine(), out int guess))
             {
-                Console.WriteLine("Ошибка ввода.");
+                Console.WriteLine("Ошибка ввода. Введите целое число.");
+                attempts--; // Не засчитываем попытку при ошибке ввода
+                continue;
+            }
+
+            if (guess < 1 || guess > level.MaxNumber)
+            {
+                Console.WriteLine($"Число должно быть в диапазоне от 1 до {level.MaxNumber}.");
+                attempts--;
                 continue;
             }
 
             if (guess == target)
             {
-                Console.WriteLine("Поздравляю! Вы угадали.");
-                break;
+                Console.WriteLine($"\nПоздравляю! Вы угадали число {target} за {attempts} попыток!");
+                return; // Победа! Выходим из метода
             }
 
-            Console.WriteLine(guess > target ? "Меньше." : "Больше.");
+            Console.WriteLine(guess > target ? "Ваше число БОЛЬШЕ." : "Ваше число МЕНЬШЕ.");
         }
+
+        // Если цикл закончился, а мы не вышли через return — значит попытки кончились
+        Console.WriteLine($"\nУвы! Вы исчерпали все попытки. Загаданное число было: {target}");
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using GuessTheNumber.Core.Difficulty;
 using GuessTheNumber.Core.Game;
+using GuessTheNumber.Core.Stats; //  ДОБАВИЛИ ЭТУ СТРОКУ
 
 namespace GuessTheNumber
 {
@@ -9,6 +10,16 @@ namespace GuessTheNumber
         static void Main(string[] args)
         {
             Console.WriteLine("Добро пожаловать в игру 'Угадай число'!");
+
+            // --- ИНИЦИАЛИЗИРУЕМ СТАТИСТИКУ ---
+            IStatisticsService statsService = new FileStatisticsService();
+            GameStats currentStats = statsService.GetStats();
+
+            // Показываем сохраненную статистику при запуске
+            if (currentStats.TotalGames > 0)
+            {
+                Console.WriteLine($"\n[Статистика] Игр: {currentStats.TotalGames} | Побед: {currentStats.Wins} | Поражений: {currentStats.Losses}");
+            }
 
             IDifficultyProvider provider = new DefaultDifficultyProvider();
             IReadOnlyList<DifficultyLevel> levels = provider.GetLevels();
@@ -32,16 +43,14 @@ namespace GuessTheNumber
 
             DifficultyLevel selectedLevel = levels[chosenIndex];
 
-            // --- Создаем игру и ПОДПИСЫВАЕМСЯ на события ---
             var game = new GameService();
 
-            // 1. Подписываемся на сообщения (подсказки)
             game.OnMessage += (message) =>
             {
                 Console.WriteLine(message);
             };
 
-            // 2. Подписываемся на окончание игры
+            // --- ОБНОВЛЕННАЯ ПОДПИСКА НА ОКОНЧАНИЕ ИГРЫ ---
             game.OnGameEnded += (result) =>
             {
                 if (result.IsWin)
@@ -52,9 +61,12 @@ namespace GuessTheNumber
                 {
                     Console.WriteLine($"\nУвы! Вы исчерпали все попытки. Загаданное число было: {result.TargetNumber}");
                 }
+
+                // СОХРАНЯЕМ РЕЗУЛЬТАТ В СТАТИСТИКУ
+                statsService.RecordGame(result.Attempts, result.IsWin);
+                Console.WriteLine("[Статистика сохранена в файл]");
             };
 
-            // Запускаем игру
             game.Play(selectedLevel);
 
             Console.WriteLine("\nНажмите любую клавишу для выхода...");

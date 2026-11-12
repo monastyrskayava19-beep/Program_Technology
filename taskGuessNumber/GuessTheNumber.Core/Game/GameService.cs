@@ -10,6 +10,21 @@ public class GameService
 {
     private readonly Random _random = new();
 
+    // --- СОБЫТИЯ ---
+
+    /// <summary>
+    /// Событие: возникает, когда нужно показать игроку сообщение (подсказку или ошибку).
+    /// </summary>
+    public event Action<string>? OnMessage;
+
+    /// <summary>
+    /// Событие: возникает, когда игра заканчивается (победой или поражением).
+    /// </summary>
+    public event Action<GameResult>? OnGameEnded;
+
+
+    // --- ЛОГИКА ---
+
     /// <summary>
     /// Запускает игру с выбранным уровнем сложности.
     /// </summary>
@@ -18,37 +33,39 @@ public class GameService
         int target = _random.Next(1, level.MaxNumber + 1);
         int attempts = 0;
 
-        Console.WriteLine($"Я загадал число от 1 до {level.MaxNumber}. У вас есть {level.MaxAttempts} попыток.");
+        // Вместо Console.WriteLine вызываем событие
+        OnMessage?.Invoke($"Я загадал число от 1 до {level.MaxNumber}. У вас есть {level.MaxAttempts} попыток.");
 
         while (attempts < level.MaxAttempts)
         {
             attempts++;
-            Console.Write($"Попытка {attempts}/{level.MaxAttempts}. Введите число: ");
+            OnMessage?.Invoke($"Попытка {attempts}/{level.MaxAttempts}. Введите число: ");
 
             if (!int.TryParse(Console.ReadLine(), out int guess))
             {
-                Console.WriteLine("Ошибка ввода. Введите целое число.");
-                attempts--; // Не засчитываем попытку при ошибке ввода
+                OnMessage?.Invoke("Ошибка ввода. Введите целое число.");
+                attempts--;
                 continue;
             }
 
             if (guess < 1 || guess > level.MaxNumber)
             {
-                Console.WriteLine($"Число должно быть в диапазоне от 1 до {level.MaxNumber}.");
+                OnMessage?.Invoke($"Число должно быть в диапазоне от 1 до {level.MaxNumber}.");
                 attempts--;
                 continue;
             }
 
             if (guess == target)
             {
-                Console.WriteLine($"\nПоздравляю! Вы угадали число {target} за {attempts} попыток!");
-                return; // Победа! Выходим из метода
+                // Победа! Вызываем событие окончания игры
+                OnGameEnded?.Invoke(new GameResult(attempts, true, target));
+                return;
             }
 
-            Console.WriteLine(guess > target ? "Ваше число БОЛЬШЕ." : "Ваше число МЕНЬШЕ.");
+            OnMessage?.Invoke(guess > target ? "Ваше число БОЛЬШЕ." : "Ваше число МЕНЬШЕ.");
         }
 
-        // Если цикл закончился, а мы не вышли через return — значит попытки кончились
-        Console.WriteLine($"\nУвы! Вы исчерпали все попытки. Загаданное число было: {target}");
+        // Если вышли из цикла - это поражение
+        OnGameEnded?.Invoke(new GameResult(attempts, false, target));
     }
 }
